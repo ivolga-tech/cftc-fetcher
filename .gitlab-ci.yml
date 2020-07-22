@@ -1,0 +1,74 @@
+image: dbnomics/dbnomics-gitlab-ci:latest
+
+variables:
+  # Can be "download" or "convert"
+  JOB: convert
+  PROVIDER_SLUG: paj
+
+before_script:
+  # Display info about environment.
+  - date
+  - locale
+  - echo "Running job ${JOB} for provider ${PROVIDER_SLUG}"
+
+  # Install fetcher dependencies.
+  - '[ -f requirements.txt ] && pip3 install --requirement requirements.txt'
+
+  # Run ssh-agent (inside the build environment).
+  - eval $(ssh-agent -s)
+
+  # Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store.
+  - ssh-add <(echo "$SSH_PRIVATE_KEY")
+
+  # Add the SSH keys of remote Git servers, to disable host key checking questions.
+  - mkdir -p ~/.ssh
+  - ssh-keyscan -t rsa git.nomics.world >> ~/.ssh/known_hosts
+
+  - git config --global push.default simple
+  - git config --global user.email "${PROVIDER_SLUG}-fetcher@db.nomics.world"
+  - git config --global user.name "${PROVIDER_SLUG} fetcher"
+
+job:
+  stage: build
+  except:
+    - pushes
+  tags:
+    - docker
+  script:
+    - set -x
+    - |
+      if [ "${JOB}" == "download" ]; then
+        time git clone --quiet --depth=1 git@git.nomics.world:dbnomics-source-data/${PROVIDER_SLUG}-source-data.git
+        cd ${PROVIDER_SLUG}-source-data
+        time find -not -path "./.git/*" -not -name ".git" -delete
+        cd ..
+        time python3 download.py ${PROVIDER_SLUG}-source-data
+        cd ${PROVIDER_SLUG}-source-data
+        time git add -A
+        time git commit -m "New download" --quiet || true
+        time git push
+        # Move errors.json file, if present; to be kept as artifact
+        [ -f errors.json ] && mv errors.json .. || true
+      fi
+    - |
+      if [ "${JOB}" == "convert" ]; then
+        time git clone --quiet --depth=1 https://git.nomics.world/dbnomics-source-data/${PROVIDER_SLUG}-source-data.git
+        time git clone --quiet --depth=1 git@git.nomics.world:dbnomics-json-data/${PROVIDER_SLUG}-json-data.git
+        cd ${PROVIDER_SLUG}-json-data
+        # If not on master, checkout corresponding branch on json-data
+        git checkout -B ${CI_COMMIT_REF_NAME}
+        # Delete all existing files
+        time find -not -path "./.git/*" -not -name ".git" -delete
+        cd ..
+        time python3 convert.py ${PROVIDER_SLUG}-source-data ${PROVIDER_SLUG}-json-data
+        cd ${PROVIDER_SLUG}-json-data
+        # Commit conversion result, ignoring absent datasets
+        time git add --ignore-removal .
+        time git commit -m "New conversion..." -m "from source-data $(git -C ../${PROVIDER_SLUG}-source-data rev-parse HEAD)" --quiet || true
+        time git push origin ${CI_COMMIT_REF_NAME}
+        # Move errors.json file, if present; to be kept as artifact
+        [ -f errors.json ] && mv errors.json .. || true
+      fi
+  artifacts:
+    paths:
+      - errors.json

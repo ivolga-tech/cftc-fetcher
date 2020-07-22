@@ -1,0 +1,4 @@
+dbnomics-fetcher-toolbox
+git+https://git.nomics.world/dbnomics/dbnomics-json-errors.git@0.1.0#egg=dbnomics_json_errors
+requests
+xlrd
