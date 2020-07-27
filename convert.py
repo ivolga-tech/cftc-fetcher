@@ -67,16 +67,107 @@ PROVIDER_DATA = {
     "website": "https://www.paj.gr.jp/english/statis/",
 }
 
+attributes = {'UNIT': Attribute(concept_id="UNIT", codelist_id="CL_UNIT",
+                                attachment_level=AttachmentLevel.SERIES)}
+codelists = {"CL_UNIT": CodeList(id="CL_UNIT",
+                                 codes=[Code(value="kl",
+                                             descriptions={"en": "kiloliter"})],
+                                 names={"en": "Unit of measure"}),
+             "CL_FREQ": CodeList(id="CL_FREQ",
+                                 codes=[
+                                     Code(value="M", descriptions={"en": "Monthly"})],
+                                 names={"en": "Frequency"}),
+             "CL_COUNTRY": CodeList(id="CL_COUNTRY",
+                                    codes=[Code(value="AE",
+                                                descriptions={
+                                                    "en": "United Arab Emirates"}),
+                                           Code(value="AU",
+                                                descriptions={"en": "Australia"}),
+                                           Code(value="BH",
+                                                descriptions={"en": "Bahrain"}),
+                                           Code(value="CH",
+                                                descriptions={"en": "China"}),
+                                           Code(value="DZ",
+                                                descriptions={"en": "Algeria"}),
+                                           Code(value="EG",
+                                                descriptions={"en": "Egypt"}),
+                                           Code(value="ES",
+                                                descriptions={"en": "Spain"}),
+                                           Code(value="GA",
+                                                descriptions={"en": "Gabon"}),
+                                           Code(value="GR",
+                                                descriptions={"en": "Greece"}),
+                                           Code(value="HK",
+                                                descriptions={"en": "HongKong"}),
+                                           Code(value="ID",
+                                                descriptions={"en": "Indonesia"}),
+                                           Code(value="IN",
+                                                descriptions={"en": "India"}),
+                                           Code(value="KR",
+                                                descriptions={"en": "South Korea"}),
+                                           Code(value="KW",
+                                                descriptions={"en": "Kuwait"}),
+                                           Code(value="LK",
+                                                descriptions={"en": "Sri Lanka"}),
+                                           Code(value="MX",
+                                                descriptions={"en": "Mexico"}),
+                                           Code(value="MY",
+                                                descriptions={"en": "Malaysia"}),
+                                           Code(value="NO",
+                                                descriptions={"en": "Norway"}),
+                                           Code(value="PE",
+                                                descriptions={"en": "Peru"}),
+                                           Code(value="PG",
+                                                descriptions={
+                                                    "en": "Papua New Guinea"}),
+                                           Code(value="PK",
+                                                descriptions={"en": "Pakistan"}),
+                                           Code(value="PL",
+                                                descriptions={"en": "Poland"}),
+                                           Code(value="QA",
+                                                descriptions={"en": "Qatar"}),
+                                           Code(value="RU",
+                                                descriptions={"en": "Russia"}),
+                                           Code(value="SA",
+                                                descriptions={"en": "Saudi Arabia"}),
+                                           Code(value="SG",
+                                                descriptions={"en": "Singapore"}),
+                                           Code(value="TH",
+                                                descriptions={"en": "Thailand"}),
+                                           Code(value="TW",
+                                                descriptions={"en": "Taiwan"}),
+                                           Code(value="VN",
+                                                descriptions={"en": "Vietnam"}),
+                                           Code(value="US",
+                                                descriptions={
+                                                    "en": "United States of America"}),
+                                           Code(value="UNK",
+                                                descriptions={"en": "Unknown"})],
+                                    names={"en": "Country"}),
+             "CL_PRODUCT": CodeList(id="CL_PRODUCT",
+                                    codes=[Code(value="FOA",
+                                                descriptions={"en": "Fuel Oil A"}),
+                                           Code(value="FOBC",
+                                                descriptions={"en": "Fuel Oil B-C"}),
+                                           Code(value="G",
+                                                descriptions={"en": "Gasoline"}),
+                                           Code(value="GO",
+                                                descriptions={"en": "Gas Oil"}),
+                                           Code(value="K",
+                                                descriptions={"en": "Kerosene"}),
+                                           Code(value="N",
+                                                descriptions={"en": "Naphtha"})],
+                                    names={"en": "Product"})}
+concepts = {"UNIT": Concept(id="UNIT", names={"en": "Unit of measure"}),
+            "FREQ": Concept(id="FREQ", names={"en": "Frequency"}),
+            "COUNTRY": Concept(id="COUNTRY", names={"en": "Country"}),
+            "PRODUCT": Concept(id="PRODUCT", names={"en": "Product"})}
+
 DATASETS_DEFINITIONS = {
     "01": DatasetStructure(
-        attributes=[Attribute(concept_id="UNIT", codelist_id="CL_UNIT",
-                              attachment_level=AttachmentLevel.SERIES)],
-        codelists=[CodeList(id="CL_UNIT",
-                            codes=[Code(value="kl", descriptions={"en": "kiloliter"})],
-                            names={"en": "Unit of measure"}),
-                   CodeList(id="CL_FREQ",
-                            codes=[Code(value="M", descriptions={"en": "Monthly"})],
-                            names={"en": "Frequency"}),
+        attributes=[attributes['UNIT']],
+        codelists=[codelists["CL_UNIT"],
+                   codelists["CL_FREQ"],
                    CodeList(id="CL_INDEX",
                             codes=[Code(value="P", descriptions={"en": "Production"}),
                                    Code(value="I", descriptions={"en": "Import"}),
@@ -91,18 +182,48 @@ DATASETS_DEFINITIONS = {
                                    Code(value="ES", descriptions={"en": "End stocks"})],
                             names={"en": "Measurement index"})
                    ],
-        concepts=[Concept(id="UNIT", names={"en": "Unit of measure"}),
-                  Concept(id="FREQ", names={"en": "Frequency"}),
+        concepts=[concepts["UNIT"],
+                  concepts["FREQ"],
                   Concept(id="INDEX", names={"en": "Index of measurements"})],
         dimensions=[Dimension(concept_id="FREQ", codelist_id="CL_FREQ"),
                     Dimension(concept_id="INDEX", codelist_id="CL_INDEX")],
         id="SDCO",
         names={"en": "Supply and Demand of Crude Oil"}
-    )
+    ),
+    "03": DatasetStructure(
+        attributes=[attributes['UNIT']],
+        codelists=[codelists["CL_UNIT"],
+                   codelists["CL_FREQ"],
+                   codelists["CL_COUNTRY"],
+                   codelists["CL_PRODUCT"]],
+        concepts=[concepts["UNIT"],
+                  concepts["FREQ"],
+                  concepts["COUNTRY"],
+                  concepts["PRODUCT"]],
+        dimensions=[Dimension(concept_id="FREQ", codelist_id="CL_FREQ"),
+                    Dimension(concept_id="PRODUCT", codelist_id="CL_PRODUCT"),
+                    Dimension(concept_id="COUNTRY", codelist_id="CL_COUNTRY")],
+        id="PIbC",
+        names={"en": "Product Import by Countries"}
+    ),
+    "05": DatasetStructure(
+        attributes=[attributes['UNIT']],
+        codelists=[codelists["CL_UNIT"],
+                   codelists["CL_FREQ"],
+                   codelists["CL_COUNTRY"]],
+        concepts=[concepts["UNIT"],
+                  concepts["FREQ"],
+                  concepts["COUNTRY"]],
+        dimensions=[Dimension(concept_id="FREQ", codelist_id="CL_FREQ"),
+                    Dimension(concept_id="COUNTRY", codelist_id="CL_COUNTRY")],
+        id="COSbS",
+        names={"en": "Crude Oil Shipment by Source (non-Refining Use)"}
+    ),
 }
 
 REGEXS = {
-    'period_monthly': r'(\d{4})\.(\d{2})',
+    'period_monthly': r'^(\d{4})\.(\d{2})$',
+    'period_only_month': r'^(\d{2})$',
 }
 
 log = logging.getLogger(__name__)
@@ -155,6 +276,7 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
     dataset_source_xls = \
         sorted(input_dir.glob("*"), key=os.path.basename, reverse=True)[0]
     dataset_source = xlrd.open_workbook(dataset_source_xls, on_demand=True)
+    series_dict = None
     if structure.id == 'SDCO':
         source_sheet = dataset_source.sheet_by_index(0)
         index_codes = structure.get_codelist('CL_INDEX').codes
@@ -172,6 +294,82 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
                               value=parse_observation_value(
                                   source_sheet.cell(r_index, c_index + 1).value or NAN))
                     series_dict['M.' + index_code.value].observations.append(obs)
+    elif structure.id == 'PIbC':
+        series_dict = {}
+        mapping = [{'PRODUCT': 'G',
+                    'COUNTRY': {1: 'KR', 2: 'CH', 4: 'SG', 6: 'AE', 7: 'PL', 8: 'US'}},
+                   {'PRODUCT': 'N',
+                    'COUNTRY': {1: 'KR', 2: 'TW', 3: 'HK', 5: 'TH', 6: 'SG', 7: 'MY',
+                                8: 'ID', 10: 'IN', 11: 'PK', 12: 'LK', 14: 'BH',
+                                15: 'SA', 16: 'KW', 17: 'QA', 18: 'AE', 20: 'NO',
+                                21: 'ES', 22: 'RU', 23: 'GR', 25: 'US', 26: 'MX',
+                                27: 'PE', 29: 'DZ', 30: 'EG', 32: 'AU', 33: 'PG'}},
+                   {'PRODUCT': 'K',
+                    'COUNTRY': {1: 'KR', 2: 'CH', 4: 'MY'}},
+                   {'PRODUCT': 'GO',
+                    'COUNTRY': {1: 'KR'}},
+                   {'PRODUCT': 'FOA',
+                    'COUNTRY': {1: 'KR'}},
+                   {'PRODUCT': 'FOBC',
+                    'COUNTRY': {1: 'KR', 2: 'TW', 4: 'SG', 5: 'MY', 7: 'RU', 8: 'PG'}}]
+        for sheet_index, spec in enumerate(mapping):
+            source_sheet = dataset_source.sheet_by_index(sheet_index)
+            curr_year = None
+            series_key = 'M.%s.' % spec['PRODUCT']
+            for r_index, cell in enumerate(source_sheet.col(0)):
+                match = re.match(REGEXS['period_monthly'], cell.value)
+                match_month = re.match(REGEXS['period_only_month'], cell.value)
+                if match or match_month:
+                    month = match.group(2) if match else match_month.group(1)
+                    if match:
+                        curr_year = match.group(1)
+                    obs_time = curr_year + '-' + month
+                    for c_index, country_code in spec['COUNTRY'].items():
+                        country_key = series_key + country_code
+                        if not series_dict.get(country_key, None):
+                            series_dict[country_key] = Series(key=[
+                                Value(concept_id='FREQ', value='M'),
+                                Value(concept_id='PRODUCT', value=spec['PRODUCT']),
+                                Value(concept_id='COUNTRY', value=country_code)
+                            ], attributes=[Value(concept_id='UNIT', value='kl')],
+                                observations=[])
+                        cell_val = source_sheet.cell(r_index, c_index).value
+                        cell_val = NAN if cell_val == '-' or not cell_val else cell_val
+                        obs = Obs(time=obs_time, attributes=[],
+                                  value=parse_observation_value(cell_val))
+                        series_dict[country_key].observations.append(obs)
+                elif curr_year:
+                    break
+    elif structure.id == 'COSbS':
+        series_dict = {}
+        mapping = {2: 'VN', 3: 'ID', 5: 'SA', 6: 'AE', 10: 'GA', 11: 'UNK'}
+        source_sheet = dataset_source.sheet_by_index(0)
+        curr_year = None
+        for r_index, cell in enumerate(source_sheet.col(1)):
+            match = re.match(REGEXS['period_monthly'], cell.value)
+            match_month = re.match(REGEXS['period_only_month'], cell.value)
+            if match or match_month:
+                month = match.group(2) if match else match_month.group(1)
+                if match:
+                    curr_year = match.group(1)
+                obs_time = curr_year + '-' + month
+                for c_index, country_code in mapping.items():
+                    series_key = 'M.' + country_code
+                    if not series_dict.get(series_key, None):
+                        series_dict[series_key] = Series(key=[
+                            Value(concept_id='FREQ', value='M'),
+                            Value(concept_id='COUNTRY', value=country_code)
+                        ], attributes=[Value(concept_id='UNIT', value='kl')],
+                            observations=[])
+                    cell_val = source_sheet.cell(r_index, c_index).value
+                    cell_val = NAN if cell_val == '-' or not cell_val else cell_val
+                    obs = Obs(time=obs_time, attributes=[],
+                              value=parse_observation_value(cell_val))
+                    series_dict[series_key].observations.append(obs)
+            elif curr_year:
+                break
+
+    if series_dict:
         write_json_file(output_dir / 'dataset.json',
                         {**structure_to_dataset_json(dataset_code=structure.id,
                                                      structure=structure,
