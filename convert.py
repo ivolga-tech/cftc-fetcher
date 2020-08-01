@@ -71,7 +71,17 @@ attributes = {'UNIT': Attribute(concept_id="UNIT", codelist_id="CL_UNIT",
                                 attachment_level=AttachmentLevel.SERIES)}
 codelists = {"CL_UNIT": CodeList(id="CL_UNIT",
                                  codes=[Code(value="kl",
-                                             descriptions={"en": "kiloliter"})],
+                                             descriptions={"en": "kiloliter"}),
+                                        Code(value="Yen/kl",
+                                             descriptions={"en": "Yen for kiloliter"}),
+                                        Code(value="Yen/ton",
+                                             descriptions={"en": "Yen for ton"}),
+                                        Code(value="Dol/kl",
+                                             descriptions={
+                                                 "en": "Dollars for kiloliter"}),
+                                        Code(value="Dol/ton",
+                                             descriptions={"en": "Dollars for ton"})
+                                        ],
                                  names={"en": "Unit of measure"}),
              "CL_FREQ": CodeList(id="CL_FREQ",
                                  codes=[
@@ -145,23 +155,38 @@ codelists = {"CL_UNIT": CodeList(id="CL_UNIT",
                                                 descriptions={"en": "Unknown"})],
                                     names={"en": "Country"}),
              "CL_PRODUCT": CodeList(id="CL_PRODUCT",
-                                    codes=[Code(value="FOA",
+                                    codes=[Code(value="CO",
+                                                descriptions={"en": "Crude Oil"}),
+                                           Code(value="FOA",
                                                 descriptions={"en": "Fuel Oil A"}),
                                            Code(value="FOBC",
                                                 descriptions={"en": "Fuel Oil B-C"}),
+                                           Code(value="FOC",
+                                                descriptions={"en": "Fuel Oil C"}),
                                            Code(value="G",
                                                 descriptions={"en": "Gasoline"}),
                                            Code(value="GO",
                                                 descriptions={"en": "Gas Oil"}),
                                            Code(value="K",
                                                 descriptions={"en": "Kerosene"}),
+                                           Code(value="LPG",
+                                                descriptions={"en": "LPG"}),
                                            Code(value="N",
-                                                descriptions={"en": "Naphtha"})],
-                                    names={"en": "Product"})}
+                                                descriptions={"en": "Naphtha"}),
+                                           ],
+                                    names={"en": "Product"}),
+             "CL_CURRENCY": CodeList(id="CL_CURRENCY",
+                                     codes=[Code(value="Y", descriptions={"en": "Yen"}),
+                                            Code(value="D",
+                                                 descriptions={"en": "Dollar"})],
+                                     names={"en": "Currency"})
+             }
 concepts = {"UNIT": Concept(id="UNIT", names={"en": "Unit of measure"}),
             "FREQ": Concept(id="FREQ", names={"en": "Frequency"}),
             "COUNTRY": Concept(id="COUNTRY", names={"en": "Country"}),
-            "PRODUCT": Concept(id="PRODUCT", names={"en": "Product"})}
+            "PRODUCT": Concept(id="PRODUCT", names={"en": "Product"}),
+            "CURRENCY": Concept(id="CURRENCY", names={"en": "Currency"}),
+            }
 
 DATASETS_DEFINITIONS = {
     "01": DatasetStructure(
@@ -219,11 +244,27 @@ DATASETS_DEFINITIONS = {
         id="COSbS",
         names={"en": "Crude Oil Shipment by Source (non-Refining Use)"}
     ),
+    "07": DatasetStructure(
+        attributes=[attributes['UNIT']],
+        codelists=[codelists["CL_UNIT"],
+                   codelists["CL_FREQ"],
+                   codelists["CL_PRODUCT"],
+                   codelists["CL_CURRENCY"]],
+        concepts=[concepts["UNIT"],
+                  concepts["FREQ"],
+                  concepts["PRODUCT"],
+                  concepts["CURRENCY"]],
+        dimensions=[Dimension(concept_id="FREQ", codelist_id="CL_FREQ"),
+                    Dimension(concept_id="CURRENCY", codelist_id="CL_CURRENCY"),
+                    Dimension(concept_id="PRODUCT", codelist_id="CL_PRODUCT")],
+        id="OIP",
+        names={"en": "Oil Import Price"}
+    ),
 }
 
 REGEXS = {
-    'period_monthly': r'^(\d{4})\.(\d{2})$',
-    'period_only_month': r'^(\d{2})$',
+    'period_monthly': r'^(\d{4})[\.\s]+(\d{1,2})$',
+    'period_only_month': r'^(\d{1,2})$',
 }
 
 log = logging.getLogger(__name__)
@@ -271,12 +312,31 @@ def main():
     return 0
 
 
+def parse_cell(sheet, row, coll):
+    cell_val = sheet.cell(row, coll).value
+    cell_val = NAN if cell_val == '-' or not cell_val \
+        else re.sub(r'[^0-9\.\,]', '', '%s' % cell_val)
+    return parse_observation_value(cell_val)
+
+
 def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Path):
     output_dir.mkdir(exist_ok=True, parents=True)
     dataset_source_xls = \
         sorted(input_dir.glob("*"), key=os.path.basename, reverse=True)[0]
     dataset_source = xlrd.open_workbook(dataset_source_xls, on_demand=True)
     series_dict = None
+    curr_year = [None]
+
+    def match_date(cell, c_year):
+        val = '%02d' % cell.value if cell.ctype == 2 else cell.value
+        match = re.match(REGEXS['period_monthly'], '%s' % val)
+        match_month = re.match(REGEXS['period_only_month'], '%s' % val)
+        if match or match_month:
+            month = '%02d' % int(match.group(2) if match else match_month.group(1))
+            if match:
+                c_year[0] = match.group(1)
+            return c_year[0] + '-' + month
+
     if structure.id == 'SDCO':
         source_sheet = dataset_source.sheet_by_index(0)
         index_codes = structure.get_codelist('CL_INDEX').codes
@@ -291,8 +351,7 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
                 obs_time = match.group(1) + '-' + match.group(2)
                 for c_index, index_code in enumerate(index_codes):
                     obs = Obs(time=obs_time, attributes=[],
-                              value=parse_observation_value(
-                                  source_sheet.cell(r_index, c_index + 1).value or NAN))
+                              value=parse_cell(source_sheet, r_index, c_index + 1))
                     series_dict['M.' + index_code.value].observations.append(obs)
     elif structure.id == 'PIbC':
         series_dict = {}
@@ -314,16 +373,10 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
                     'COUNTRY': {1: 'KR', 2: 'TW', 4: 'SG', 5: 'MY', 7: 'RU', 8: 'PG'}}]
         for sheet_index, spec in enumerate(mapping):
             source_sheet = dataset_source.sheet_by_index(sheet_index)
-            curr_year = None
             series_key = 'M.%s.' % spec['PRODUCT']
             for r_index, cell in enumerate(source_sheet.col(0)):
-                match = re.match(REGEXS['period_monthly'], cell.value)
-                match_month = re.match(REGEXS['period_only_month'], cell.value)
-                if match or match_month:
-                    month = match.group(2) if match else match_month.group(1)
-                    if match:
-                        curr_year = match.group(1)
-                    obs_time = curr_year + '-' + month
+                obs_time = match_date(cell, curr_year) if cell.value else None
+                if obs_time:
                     for c_index, country_code in spec['COUNTRY'].items():
                         country_key = series_key + country_code
                         if not series_dict.get(country_key, None):
@@ -333,26 +386,18 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
                                 Value(concept_id='COUNTRY', value=country_code)
                             ], attributes=[Value(concept_id='UNIT', value='kl')],
                                 observations=[])
-                        cell_val = source_sheet.cell(r_index, c_index).value
-                        cell_val = NAN if cell_val == '-' or not cell_val else cell_val
                         obs = Obs(time=obs_time, attributes=[],
-                                  value=parse_observation_value(cell_val))
+                                  value=parse_cell(source_sheet, r_index, c_index))
                         series_dict[country_key].observations.append(obs)
-                elif curr_year:
+                elif curr_year[0]:
                     break
     elif structure.id == 'COSbS':
         series_dict = {}
         mapping = {2: 'VN', 3: 'ID', 5: 'SA', 6: 'AE', 10: 'GA', 11: 'UNK'}
         source_sheet = dataset_source.sheet_by_index(0)
-        curr_year = None
         for r_index, cell in enumerate(source_sheet.col(1)):
-            match = re.match(REGEXS['period_monthly'], cell.value)
-            match_month = re.match(REGEXS['period_only_month'], cell.value)
-            if match or match_month:
-                month = match.group(2) if match else match_month.group(1)
-                if match:
-                    curr_year = match.group(1)
-                obs_time = curr_year + '-' + month
+            obs_time = match_date(cell, curr_year) if cell.value else None
+            if obs_time:
                 for c_index, country_code in mapping.items():
                     series_key = 'M.' + country_code
                     if not series_dict.get(series_key, None):
@@ -361,13 +406,39 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
                             Value(concept_id='COUNTRY', value=country_code)
                         ], attributes=[Value(concept_id='UNIT', value='kl')],
                             observations=[])
-                    cell_val = source_sheet.cell(r_index, c_index).value
-                    cell_val = NAN if cell_val == '-' or not cell_val else cell_val
                     obs = Obs(time=obs_time, attributes=[],
-                              value=parse_observation_value(cell_val))
+                              value=parse_cell(source_sheet, r_index, c_index))
                     series_dict[series_key].observations.append(obs)
-            elif curr_year:
+            elif curr_year[0]:
                 break
+    elif structure.id == 'OIP':
+        series_dict = {}
+        mapping = {'Y': {1: 'CO', 2: 'G', 3: 'N', 4: 'K', 5: 'GO', 6: 'FOA', 7: 'FOC',
+                         8: 'LPG'},
+                   'D': {1: 'CO', 3: 'G', 4: 'N', 5: 'K', 6: 'GO', 7: 'FOA', 8: 'FOC',
+                         9: 'LPG'}}
+        sheet_index = 0
+        for currency, cmapping in mapping.items():
+            source_sheet = dataset_source.sheet_by_index(sheet_index)
+            sheet_index += 1
+            series_key = 'M.%s.' % currency
+            for r_index, cell in enumerate(source_sheet.col(0)):
+                obs_time = match_date(cell, curr_year) if cell.value else None
+                if obs_time:
+                    for c_index, product in cmapping.items():
+                        product_key = series_key + product
+                        if not series_dict.get(product_key, None):
+                            unit = {'Y': 'Yen', 'D': 'Dol'}[currency] + '/' + \
+                                   ('ton' if product == 'LPG' else 'kl')
+                            series_dict[product_key] = Series(key=[
+                                Value(concept_id='FREQ', value='M'),
+                                Value(concept_id='CURRENCY', value=currency),
+                                Value(concept_id='PRODUCT', value=product)
+                            ], attributes=[Value(concept_id='UNIT', value=unit)],
+                                observations=[])
+                        obs = Obs(time=obs_time, attributes=[],
+                                  value=parse_cell(source_sheet, r_index, c_index))
+                        series_dict[product_key].observations.append(obs)
 
     if series_dict:
         write_json_file(output_dir / 'dataset.json',
