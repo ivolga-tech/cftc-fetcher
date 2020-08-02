@@ -54,8 +54,8 @@ from typing import Sequence
 import xlrd
 from dbnomics_fetcher_toolbox.arguments import add_arguments_for_convert
 from dbnomics_fetcher_toolbox.logging_utils import setup_logging
-from dbnomics_fetcher_toolbox.sdmx_v2_0 import DatasetStructure, Attribute, Concept, \
-    CodeList, Code, AttachmentLevel, Dimension, Series, Value, Obs, \
+from dbnomics_fetcher_toolbox.sdmx_v2_0 import AttachmentLevel, Attribute, Code, \
+    CodeList, Concept, DatasetStructure, Dimension, Obs, Series, Value, \
     parse_observation_value, NAN, structure_to_dataset_json, series_to_series_json
 from dbnomics_json_errors import ErrorsArtifact
 
@@ -80,7 +80,9 @@ codelists = {"CL_UNIT": CodeList(id="CL_UNIT",
                                              descriptions={
                                                  "en": "Dollars for kiloliter"}),
                                         Code(value="Dol/ton",
-                                             descriptions={"en": "Dollars for ton"})
+                                             descriptions={"en": "Dollars for ton"}),
+                                        Code(value="10k_kls",
+                                             descriptions={"en": "10 thousand kls"})
                                         ],
                                  names={"en": "Unit of measure"}),
              "CL_FREQ": CodeList(id="CL_FREQ",
@@ -260,6 +262,31 @@ DATASETS_DEFINITIONS = {
         id="OIP",
         names={"en": "Oil Import Price"}
     ),
+    "09": DatasetStructure(
+        attributes=[attributes['UNIT']],
+        codelists=[codelists["CL_UNIT"],
+                   codelists["CL_FREQ"],
+                   CodeList(id="CL_STOCKTARGET",
+                            codes=[Code(value="CO", descriptions={"en": "Crude oil"}),
+                                   Code(value="P", descriptions={"en": "Products"}),
+                                   Code(value="D", descriptions={"en": "Days"})],
+                            names={"en": "Stock target"}),
+                   CodeList(id="CL_SUBJECT",
+                            codes=[Code(value="P", descriptions={"en": "Private"}),
+                                   Code(value="G", descriptions={"en": "Government"}),
+                                   Code(value="JOSP",
+                                        descriptions={
+                                            "en": "Joint oil storage projects"})],
+                            names={"en": "Stock subject"})],
+        concepts=[concepts["UNIT"],
+                  concepts["FREQ"],
+                  Concept(id="STOCKTARGET", names={"en": "Stock target"}),
+                  Concept(id="SUBJECT", names={"en": "Stock subject"})],
+        dimensions=[Dimension(concept_id="FREQ", codelist_id="CL_FREQ"),
+                    Dimension(concept_id="SUBJECT", codelist_id="CL_SUBJECT"),
+                    Dimension(concept_id="STOCKTARGET", codelist_id="CL_STOCKTARGET")],
+        id="OS",
+        names={"en": "Oil Stockpiling"})
 }
 
 REGEXS = {
@@ -324,7 +351,7 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
     dataset_source_xls = \
         sorted(input_dir.glob("*"), key=os.path.basename, reverse=True)[0]
     dataset_source = xlrd.open_workbook(dataset_source_xls, on_demand=True)
-    series_dict = None
+    series_dict = {}
     curr_year = [None]
 
     def match_date(cell, c_year):
@@ -354,7 +381,6 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
                               value=parse_cell(source_sheet, r_index, c_index + 1))
                     series_dict['M.' + index_code.value].observations.append(obs)
     elif structure.id == 'PIbC':
-        series_dict = {}
         mapping = [{'PRODUCT': 'G',
                     'COUNTRY': {1: 'KR', 2: 'CH', 4: 'SG', 6: 'AE', 7: 'PL', 8: 'US'}},
                    {'PRODUCT': 'N',
@@ -392,7 +418,6 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
                 elif curr_year[0]:
                     break
     elif structure.id == 'COSbS':
-        series_dict = {}
         mapping = {2: 'VN', 3: 'ID', 5: 'SA', 6: 'AE', 10: 'GA', 11: 'UNK'}
         source_sheet = dataset_source.sheet_by_index(0)
         for r_index, cell in enumerate(source_sheet.col(1)):
@@ -412,7 +437,6 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
             elif curr_year[0]:
                 break
     elif structure.id == 'OIP':
-        series_dict = {}
         mapping = {'Y': {1: 'CO', 2: 'G', 3: 'N', 4: 'K', 5: 'GO', 6: 'FOA', 7: 'FOC',
                          8: 'LPG'},
                    'D': {1: 'CO', 3: 'G', 4: 'N', 5: 'K', 6: 'GO', 7: 'FOA', 8: 'FOC',
@@ -439,6 +463,24 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
                         obs = Obs(time=obs_time, attributes=[],
                                   value=parse_cell(source_sheet, r_index, c_index))
                         series_dict[product_key].observations.append(obs)
+    elif structure.id == 'OS':
+        series_dict = {'M.' + s.value + '.' + st.value: Series(key=[
+            Value(concept_id='FREQ', value='M'),
+            Value(concept_id='SUBJECT', value=s.value),
+            Value(concept_id='STOCKTARGET', value=st.value),
+        ], attributes=[Value(concept_id='UNIT', value='10k_kls')], observations=[])
+            for s in structure.get_codelist('CL_SUBJECT').codes
+            for st in structure.get_codelist('CL_STOCKTARGET').codes}
+        source_sheet = dataset_source.sheet_by_index(0)
+        mapping = {2: 'P.CO', 3: 'P.P', 5: 'P.D', 6: 'G.CO', 7: 'G.P', 9: 'G.D',
+                   10: 'JOSP.CO', 12: 'JOSP.D'}
+        for r_index, cell in enumerate(source_sheet.col(0)):
+            obs_time = match_date(cell, curr_year) if cell.value else None
+            if obs_time:
+                for c_index, target_key in mapping.items():
+                    obs = Obs(time=obs_time, attributes=[],
+                              value=parse_cell(source_sheet, r_index, c_index))
+                    series_dict['M.%s' % target_key].observations.append(obs)
 
     if series_dict:
         write_json_file(output_dir / 'dataset.json',
