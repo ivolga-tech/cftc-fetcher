@@ -93,14 +93,26 @@ codelists = {"CL_UNIT": CodeList(id="CL_UNIT",
                                     codes=[Code(value="AE",
                                                 descriptions={
                                                     "en": "United Arab Emirates"}),
+                                           Code(value="AO",
+                                                descriptions={"en": "Angola"}),
                                            Code(value="AU",
                                                 descriptions={"en": "Australia"}),
                                            Code(value="BH",
                                                 descriptions={"en": "Bahrain"}),
+                                           Code(value="BN",
+                                                descriptions={"en": "Brunei"}),
+                                           Code(value="CA",
+                                                descriptions={"en": "Canada"}),
                                            Code(value="CH",
                                                 descriptions={"en": "China"}),
+                                           Code(value="CM",
+                                                descriptions={"en": "Cameroon"}),
+                                           Code(value="CO",
+                                                descriptions={"en": "Colombia"}),
                                            Code(value="DZ",
                                                 descriptions={"en": "Algeria"}),
+                                           Code(value="EC",
+                                                descriptions={"en": "Ecuador"}),
                                            Code(value="EG",
                                                 descriptions={"en": "Egypt"}),
                                            Code(value="ES",
@@ -115,18 +127,26 @@ codelists = {"CL_UNIT": CodeList(id="CL_UNIT",
                                                 descriptions={"en": "Indonesia"}),
                                            Code(value="IN",
                                                 descriptions={"en": "India"}),
+                                           Code(value="IR",
+                                                descriptions={"en": "Iran"}),
                                            Code(value="KR",
                                                 descriptions={"en": "South Korea"}),
                                            Code(value="KW",
                                                 descriptions={"en": "Kuwait"}),
+                                           Code(value="KZ",
+                                                descriptions={"en": "Kazakhstan"}),
                                            Code(value="LK",
                                                 descriptions={"en": "Sri Lanka"}),
+                                           Code(value="LY",
+                                                descriptions={"en": "Libya"}),
                                            Code(value="MX",
                                                 descriptions={"en": "Mexico"}),
                                            Code(value="MY",
                                                 descriptions={"en": "Malaysia"}),
                                            Code(value="NO",
                                                 descriptions={"en": "Norway"}),
+                                           Code(value="OM",
+                                                descriptions={"en": "Oman"}),
                                            Code(value="PE",
                                                 descriptions={"en": "Peru"}),
                                            Code(value="PG",
@@ -187,11 +207,11 @@ concepts = {"UNIT": Concept(id="UNIT", names={"en": "Unit of measure"}),
             "FREQ": Concept(id="FREQ", names={"en": "Frequency"}),
             "COUNTRY": Concept(id="COUNTRY", names={"en": "Country"}),
             "PRODUCT": Concept(id="PRODUCT", names={"en": "Product"}),
-            "CURRENCY": Concept(id="CURRENCY", names={"en": "Currency"}),
+            "CURRENCY": Concept(id="CURRENCY", names={"en": "Currency"})
             }
 
 DATASETS_DEFINITIONS = {
-    "01": DatasetStructure(
+    "01": [DatasetStructure(
         attributes=[attributes['UNIT']],
         codelists=[codelists["CL_UNIT"],
                    codelists["CL_FREQ"],
@@ -207,17 +227,15 @@ DATASETS_DEFINITIONS = {
                                         descriptions={"en": "Refining capacity"}),
                                    Code(value="U", descriptions={"en": "Utilization"}),
                                    Code(value="ES", descriptions={"en": "End stocks"})],
-                            names={"en": "Measurement index"})
-                   ],
+                            names={"en": "Measurement index"})],
         concepts=[concepts["UNIT"],
                   concepts["FREQ"],
                   Concept(id="INDEX", names={"en": "Index of measurements"})],
         dimensions=[Dimension(concept_id="FREQ", codelist_id="CL_FREQ"),
                     Dimension(concept_id="INDEX", codelist_id="CL_INDEX")],
         id="SDCO",
-        names={"en": "Supply and Demand of Crude Oil"}
-    ),
-    "03": DatasetStructure(
+        names={"en": "Supply and Demand of Crude Oil"})],
+    "03": [DatasetStructure(
         attributes=[attributes['UNIT']],
         codelists=[codelists["CL_UNIT"],
                    codelists["CL_FREQ"],
@@ -232,8 +250,101 @@ DATASETS_DEFINITIONS = {
                     Dimension(concept_id="COUNTRY", codelist_id="CL_COUNTRY")],
         id="PIbC",
         names={"en": "Product Import by Countries"}
-    ),
-    "05": DatasetStructure(
+    )],
+    "04": [DatasetStructure(
+        attributes=[attributes['UNIT']],
+        codelists=[codelists["CL_UNIT"],
+                   codelists["CL_FREQ"],
+                   codelists["CL_COUNTRY"]],
+        concepts=[concepts["UNIT"],
+                  concepts["FREQ"],
+                  concepts["COUNTRY"]],
+        dimensions=[Dimension(concept_id="FREQ", codelist_id="CL_FREQ"),
+                    Dimension(concept_id="COUNTRY", codelist_id="CL_COUNTRY")],
+        id="COIbC",
+        names={"en": "Crude Oil Import by Country"}),
+        DatasetStructure(
+            attributes=[attributes['UNIT']],
+            codelists=[codelists["CL_UNIT"],
+                       codelists["CL_FREQ"],
+                       CodeList(id="CL_OILTYPE",
+                                codes=[
+                                    Code(value="CB", descriptions={"en": "Cpc-B"}),
+                                    Code(value="BH", descriptions={"en": "Bach Ho"}),
+                                    Code(value="DH", descriptions={"en": "Dai Hung"}),
+                                    Code(value="RUB", descriptions={"en": "Ruby"}),
+                                    Code(value="SUT", descriptions={"en": "Sutuden"}),
+                                    Code(value="CS", descriptions={"en": "Chim-Sao"}),
+                                    Code(value="DUL", descriptions={"en": "Dulang"}),
+                                    Code(value="PB", descriptions={"en": "Penara-B"}),
+                                    Code(value="SEP", descriptions={"en": "Sepat"}),
+                                    Code(value="MF", descriptions={"en": "Mysia-FO"}),
+                                    Code(value="BER", descriptions={"en": "Bertam"}),
+                                    Code(value="BF", descriptions={"en": "BLEND-FO"}),
+                                    Code(value="LS", descriptions={"en": "L-Seria"}),
+                                    Code(value="CHA", descriptions={"en": "Champion"}),
+                                    Code(value="SL", descriptions={"en": "Sumatr-L"}),
+                                    Code(value="KAJ", descriptions={"en": "Kajisemo"}),
+                                    Code(value="KET", descriptions={"en": "Ketapang"}),
+                                    Code(value="IL", descriptions={"en": "Iran-L"}),
+                                    Code(value="IH", descriptions={"en": "Iran-H"}),
+                                    Code(value="FB", descriptions={"en": "Forozn-B"}),
+                                    Code(value="SPC", descriptions={"en": "S-Pars-C"}),
+                                    Code(value="SOR", descriptions={"en": "Soroosh"}),
+                                    Code(value="BASL", descriptions={"en": "Basrah-L"}),
+                                    Code(value="BASH", descriptions={"en": "Basrah-H"}),
+                                    Code(value="BAM", descriptions={"en": "Banoc-AM"}),
+                                    Code(value="AL", descriptions={"en": "Arab-L"}),
+                                    Code(value="AH", descriptions={"en": "Arab-H"}),
+                                    Code(value="AM", descriptions={"en": "Arab-M"}),
+                                    Code(value="AEL", descriptions={"en": "Arab-E-L"}),
+                                    Code(value="ASL", descriptions={"en": "Arab-S-L"}),
+                                    Code(value="KUW", descriptions={"en": "Kuwait"}),
+                                    Code(value="KSL", descriptions={"en": "Kwait-SL"}),
+                                    Code(value="Q", descriptions={"en": "Qatar"}),
+                                    Code(value="QM", descriptions={"en": "Qatar-M"}),
+                                    Code(value="AS", descriptions={"en": "A-Shahen"}),
+                                    Code(value="LC", descriptions={"en": "Lowsul-C"}),
+                                    Code(value="DFC", descriptions={"en": "Deod-F-C"}),
+                                    Code(value="OM", descriptions={"en": "Oman"}),
+                                    Code(value="MUR", descriptions={"en": "Murban"}),
+                                    Code(value="DUB", descriptions={"en": "Dubai"}),
+                                    Code(value="UZ", descriptions={"en": "U-Zakum"}),
+                                    Code(value="DAS", descriptions={"en": "DAS"}),
+                                    Code(value="MUB", descriptions={"en": "Mubarraz"}),
+                                    Code(value="UL", descriptions={"en": "Umm-Lulu"}),
+                                    Code(value="SOK", descriptions={"en": "Sokol"}),
+                                    Code(value="EB", descriptions={"en": "Espo-B"}),
+                                    Code(value="SAKB", descriptions={"en": "Sakhal-B"}),
+                                    Code(value="COL", descriptions={"en": "Coldlake"}),
+                                    Code(value="WTIM", descriptions={"en": "WTIM"}),
+                                    Code(value="EF", descriptions={"en": "Egl-Ford"}),
+                                    Code(value="MARS", descriptions={"en": "Mars"}),
+                                    Code(value="WTL", descriptions={"en": "WTL"}),
+                                    Code(value="UC", descriptions={"en": "UTICA-C"}),
+                                    Code(value="MAYA", descriptions={"en": "Maya"}),
+                                    Code(value="CASB", descriptions={"en": "Castla-B"}),
+                                    Code(value="ORI", descriptions={"en": "Oriente"}),
+                                    Code(value="NAPO", descriptions={"en": "Napo"}),
+                                    Code(value="SAHB", descriptions={"en": "Sahara-B"}),
+                                    Code(value="AMNA", descriptions={"en": "Amna"}),
+                                    Code(value="BA", descriptions={"en": "Bu Attfl"}),
+                                    Code(value="EBO", descriptions={"en": "EBOME"}),
+                                    Code(value="OGU", descriptions={"en": "Oguendjo"}),
+                                    Code(value="OLO", descriptions={"en": "Olombend"}),
+                                    Code(value="WAN", descriptions={"en": "Wandoo"}),
+                                    Code(value="WHT", descriptions={"en": "WHTSTN-C"}),
+                                    Code(value="ICH", descriptions={"en": "ICHTHY-C"}),
+                                    Code(value="PF", descriptions={"en": "Papua-FO"})],
+                                names={"en": "Oil Type"})],
+            concepts=[concepts["UNIT"],
+                      concepts["FREQ"],
+                      Concept(id="OILTYPE", names={"en": "Oil Type"})],
+            dimensions=[Dimension(concept_id="FREQ", codelist_id="CL_FREQ"),
+                        Dimension(concept_id="OILTYPE", codelist_id="CL_OILTYPE")],
+            id="COIbOT",
+            names={"en": "Crude Oil Import by Oil Type"})],
+    "05": [DatasetStructure(
         attributes=[attributes['UNIT']],
         codelists=[codelists["CL_UNIT"],
                    codelists["CL_FREQ"],
@@ -244,9 +355,8 @@ DATASETS_DEFINITIONS = {
         dimensions=[Dimension(concept_id="FREQ", codelist_id="CL_FREQ"),
                     Dimension(concept_id="COUNTRY", codelist_id="CL_COUNTRY")],
         id="COSbS",
-        names={"en": "Crude Oil Shipment by Source (non-Refining Use)"}
-    ),
-    "06": DatasetStructure(
+        names={"en": "Crude Oil Shipment by Source (non-Refining Use)"})],
+    "06": [DatasetStructure(
         attributes=[attributes['UNIT']],
         codelists=[codelists["CL_UNIT"],
                    codelists["CL_FREQ"],
@@ -264,17 +374,15 @@ DATASETS_DEFINITIONS = {
                                    Code(value="TD",
                                         descriptions={"en": "Total Demand"}),
                                    Code(value="ES", descriptions={"en": "End stocks"})],
-                            names={"en": "Measurement index"})
-                   ],
+                            names={"en": "Measurement index"})],
         concepts=[concepts["UNIT"],
                   concepts["FREQ"],
                   Concept(id="INDEX", names={"en": "Index of measurements"})],
         dimensions=[Dimension(concept_id="FREQ", codelist_id="CL_FREQ"),
                     Dimension(concept_id="INDEX", codelist_id="CL_INDEX")],
         id="SDLPG",
-        names={"en": "Supply and Demand of LPG"}
-    ),
-    "07": DatasetStructure(
+        names={"en": "Supply and Demand of LPG"})],
+    "07": [DatasetStructure(
         attributes=[attributes['UNIT']],
         codelists=[codelists["CL_UNIT"],
                    codelists["CL_FREQ"],
@@ -288,9 +396,8 @@ DATASETS_DEFINITIONS = {
                     Dimension(concept_id="CURRENCY", codelist_id="CL_CURRENCY"),
                     Dimension(concept_id="PRODUCT", codelist_id="CL_PRODUCT")],
         id="OIP",
-        names={"en": "Oil Import Price"}
-    ),
-    "09": DatasetStructure(
+        names={"en": "Oil Import Price"})],
+    "09": [DatasetStructure(
         attributes=[attributes['UNIT']],
         codelists=[codelists["CL_UNIT"],
                    codelists["CL_FREQ"],
@@ -314,7 +421,7 @@ DATASETS_DEFINITIONS = {
                     Dimension(concept_id="SUBJECT", codelist_id="CL_SUBJECT"),
                     Dimension(concept_id="STOCKTARGET", codelist_id="CL_STOCKTARGET")],
         id="OS",
-        names={"en": "Oil Stockpiling"})
+        names={"en": "Oil Stockpiling"})]
 }
 
 REGEXS = {
@@ -345,21 +452,22 @@ def main():
 
     nb_expected_datasets = 0
     errors_artifact = ErrorsArtifact()
-    for dir, datasetStructure in DATASETS_DEFINITIONS.items():
-        nb_expected_datasets += 1
-        dataset_code = datasetStructure.id
-        dataset_dir = target_dir / dataset_code
-        try:
-            convert_dataset(source_dir / dir, datasetStructure, dataset_dir)
-        except Exception as e:
-            if getattr(args, 'stop-on-exceptions', None):
-                raise e
-            log.warning("{!r} dataset aborted ! - {}".format(dataset_code, e))
-            # Add error to artifacts
-            errors_artifact.add_dataset_error(dataset_code, e)
-            # Delete dataset input_dir
-            shutil.rmtree(dataset_dir)
-            continue
+    for dir, datasetStructures in DATASETS_DEFINITIONS.items():
+        for datasetStructure in datasetStructures:
+            nb_expected_datasets += 1
+            dataset_code = datasetStructure.id
+            dataset_dir = target_dir / dataset_code
+            try:
+                convert_dataset(source_dir / dir, datasetStructure, dataset_dir)
+            except Exception as e:
+                if getattr(args, 'stop-on-exceptions', None):
+                    raise e
+                log.warning("{!r} dataset aborted ! - {}".format(dataset_code, e))
+                # Add error to artifacts
+                errors_artifact.add_dataset_error(dataset_code, e)
+                # Delete dataset input_dir
+                shutil.rmtree(dataset_dir)
+                continue
 
     # provider.json
     write_json_file(target_dir / 'provider.json', PROVIDER_DATA)
@@ -391,6 +499,23 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
             if match:
                 c_year[0] = match.group(1)
             return c_year[0] + '-' + month
+
+    def add_obs_by_mapping(sheet, cells_mapping, concept_id):
+        for row_index, source_cell in enumerate(sheet.col(1)):
+            observation_time = match_date(source_cell, curr_year) \
+                if source_cell.value else None
+            if observation_time:
+                for coll_index, m_val in cells_mapping.items():
+                    key = 'M.' + m_val
+                    if not series_dict.get(key, None):
+                        series_dict[key] = Series(key=[
+                            Value(concept_id='FREQ', value='M'),
+                            Value(concept_id=concept_id, value=m_val)
+                        ], attributes=[Value(concept_id='UNIT', value='kl')],
+                            observations=[])
+                    observation = Obs(time=observation_time, attributes=[],
+                                      value=parse_cell(sheet, row_index, coll_index))
+                    series_dict[key].observations.append(observation)
 
     if structure.id == 'SDCO':
         source_sheet = dataset_source.sheet_by_index(0)
@@ -445,25 +570,31 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
                         series_dict[country_key].observations.append(obs)
                 elif curr_year[0]:
                     break
+    elif structure.id == 'COIbC':
+        source_sheet = dataset_source.sheet_by_index(0)
+        mapping = {2: 'KZ', 3: 'VN', 4: 'MY', 5: 'BN', 6: 'ID', 8: 'IR', 9: 'IQ',
+                   10: 'BH', 11: 'SA', 12: 'KW', 13: 'QA', 14: 'OM', 15: 'AE.',
+                   17: 'RU', 18: 'CA', 19: 'US', 21: 'MX', 22: 'CO', 23: 'EC', 25: 'DZ',
+                   26: 'LY', 27: 'CM', 28: 'GA', 29: 'AO', 31: 'AU', 32: 'PG'}
+        add_obs_by_mapping(source_sheet, mapping, 'COUNTRY')
+    elif structure.id == 'COIbOT':
+        source_sheet = dataset_source.sheet_by_index(1)
+        mapping = {2: "CB", 3: "BH", 4: "DH", 5: "RUB", 6: "SUT", 7: "CS", 9: "DUL",
+                   10: "PB", 11: "SEP", 12: "MF", 13: "BER", 14: "BF", 16: "LS",
+                   17: "CHA", 19: "SL", 20: "KAJ", 21: "KET", 24: "IL", 25: "IH",
+                   26: "FB", 27: "SPC", 28: "SOR", 30: "BASL", 31: "BASH", 33: "BAM",
+                   34: "AL", 35: "AH", 36: "AM", 37: "AEL", 38: "ASL", 40: "KUW",
+                   41: "KSL", 43: "Q", 44: "QM", 45: "AS", 46: "LC", 47: "DFC",
+                   49: "OM", 50: "MUR", 51: "DUB", 52: "UZ", 53: "DAS", 54: "MUB",
+                   55: "UL", 58: "SOK", 59: "EB", 60: "SAKB", 62: "COL", 63: "WTIM",
+                   64: "EF", 65: "MARS", 66: "WTL", 67: "UC", 70: "MAYA", 71: "CASB",
+                   72: "ORI", 73: "NAPO", 76: "SAHB", 77: "AMNA", 78: "BA", 80: "EBO",
+                   81: "OGU", 82: "OLO", 84: "WAN", 85: "WHT", 86: "ICH", 88: "PF"}
+        add_obs_by_mapping(source_sheet, mapping, 'OILTYPE')
     elif structure.id == 'COSbS':
         mapping = {2: 'VN', 3: 'ID', 5: 'SA', 6: 'AE', 10: 'GA', 11: 'UNK'}
         source_sheet = dataset_source.sheet_by_index(0)
-        for r_index, cell in enumerate(source_sheet.col(1)):
-            obs_time = match_date(cell, curr_year) if cell.value else None
-            if obs_time:
-                for c_index, country_code in mapping.items():
-                    series_key = 'M.' + country_code
-                    if not series_dict.get(series_key, None):
-                        series_dict[series_key] = Series(key=[
-                            Value(concept_id='FREQ', value='M'),
-                            Value(concept_id='COUNTRY', value=country_code)
-                        ], attributes=[Value(concept_id='UNIT', value='kl')],
-                            observations=[])
-                    obs = Obs(time=obs_time, attributes=[],
-                              value=parse_cell(source_sheet, r_index, c_index))
-                    series_dict[series_key].observations.append(obs)
-            elif curr_year[0]:
-                break
+        add_obs_by_mapping(source_sheet, mapping, 'COUNTRY')
     elif structure.id == 'SDLPG':
         source_sheet = dataset_source.sheet_by_index(0)
         index_codes = structure.get_codelist('CL_INDEX').codes
