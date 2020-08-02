@@ -484,22 +484,28 @@ def main():
 
     nb_expected_datasets = 0
     errors_artifact = ErrorsArtifact()
+    excluded_datasets = args.exclude or []
+    target_datasets = args.only if args.only \
+        else [dd.id for dl in DATASETS_DEFINITIONS.values() for dd in dl
+              if dd.id not in excluded_datasets]
     for dir, datasetStructures in DATASETS_DEFINITIONS.items():
         for datasetStructure in datasetStructures:
-            nb_expected_datasets += 1
-            dataset_code = datasetStructure.id
-            dataset_dir = target_dir / dataset_code
-            try:
-                convert_dataset(source_dir / dir, datasetStructure, dataset_dir)
-            except Exception as e:
-                if getattr(args, 'stop-on-exceptions', None):
-                    raise e
-                log.warning("{!r} dataset aborted ! - {}".format(dataset_code, e))
-                # Add error to artifacts
-                errors_artifact.add_dataset_error(dataset_code, e)
-                # Delete dataset input_dir
-                shutil.rmtree(dataset_dir)
-                continue
+            if datasetStructure.id in target_datasets:
+                nb_expected_datasets += 1
+                dataset_code = datasetStructure.id
+                dataset_dir = target_dir / dataset_code
+                try:
+                    convert_dataset(source_dir / dir, datasetStructure, dataset_dir)
+                except Exception as e:
+                    if getattr(args, 'fail-fast', None):
+                        raise e
+                    log.warning("{!r} dataset aborted ! - {}".format(dataset_code, e))
+                    # Add error to artifacts
+                    errors_artifact.add_dataset_error(dataset_code, e)
+                    # Delete dataset input_dir
+                    if getattr(args, 'delete-on-error', None):
+                        shutil.rmtree(dataset_dir)
+                    continue
 
     # provider.json
     write_json_file(target_dir / 'provider.json', PROVIDER_DATA)
@@ -515,6 +521,7 @@ def parse_cell(sheet, row, coll):
 
 
 def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Path):
+    log.info("Start convert dataset %s" % structure.id)
     output_dir.mkdir(exist_ok=True, parents=True)
     dataset_source_xls = \
         sorted(input_dir.glob("*"), key=os.path.basename, reverse=True)[0]
@@ -718,6 +725,9 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
                          'updated_at': dataset_source_xls.name.split('_')[0]})
         write_jsonl_file(output_dir / 'series.jsonl',
                          [series_to_series_json(s) for s in series_dict.values()])
+
+    log.info("Finish convert dataset %s: %d series saved"
+             % (structure.id, len(series_dict)))
 
 
 def write_json_file(file_path: Path, data):
