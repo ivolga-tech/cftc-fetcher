@@ -697,16 +697,17 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
                                   value=parse_cell(source_sheet, r_index, c_index))
                         series_dict[product_key].observations.append(obs)
     elif structure.id == 'OS':
+        mapping = {2: 'P.CO', 3: 'P.P', 5: 'P.D', 6: 'G.CO', 7: 'G.P', 9: 'G.D',
+                   10: 'JOSP.CO', 12: 'JOSP.D'}
         series_dict = {'M.' + s.value + '.' + st.value: Series(key=[
             Value(concept_id='FREQ', value='M'),
             Value(concept_id='SUBJECT', value=s.value),
             Value(concept_id='STOCKTARGET', value=st.value),
         ], attributes=[Value(concept_id='UNIT', value='10k_kls')], observations=[])
             for s in structure.get_codelist('CL_SUBJECT').codes
-            for st in structure.get_codelist('CL_STOCKTARGET').codes}
+            for st in structure.get_codelist('CL_STOCKTARGET').codes
+            if s.value + '.' + st.value in mapping.values()}
         source_sheet = dataset_source.sheet_by_index(0)
-        mapping = {2: 'P.CO', 3: 'P.P', 5: 'P.D', 6: 'G.CO', 7: 'G.P', 9: 'G.D',
-                   10: 'JOSP.CO', 12: 'JOSP.D'}
         for r_index, cell in enumerate(source_sheet.col(0)):
             obs_time = match_date(cell, curr_year) if cell.value else None
             if obs_time:
