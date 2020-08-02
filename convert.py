@@ -246,6 +246,34 @@ DATASETS_DEFINITIONS = {
         id="COSbS",
         names={"en": "Crude Oil Shipment by Source (non-Refining Use)"}
     ),
+    "06": DatasetStructure(
+        attributes=[attributes['UNIT']],
+        codelists=[codelists["CL_UNIT"],
+                   codelists["CL_FREQ"],
+                   CodeList(id="CL_INDEX",
+                            codes=[Code(value="RP",
+                                        descriptions={"en": "Refinery production"}),
+                                   Code(value="I", descriptions={"en": "Import"}),
+                                   Code(value="TS",
+                                        descriptions={"en": "Total Supply"}),
+                                   Code(value="S",
+                                        descriptions={"en": "Sales"}),
+                                   Code(value="OU", descriptions={"en": "Own use"}),
+                                   Code(value="E",
+                                        descriptions={"en": "Export"}),
+                                   Code(value="TD",
+                                        descriptions={"en": "Total Demand"}),
+                                   Code(value="ES", descriptions={"en": "End stocks"})],
+                            names={"en": "Measurement index"})
+                   ],
+        concepts=[concepts["UNIT"],
+                  concepts["FREQ"],
+                  Concept(id="INDEX", names={"en": "Index of measurements"})],
+        dimensions=[Dimension(concept_id="FREQ", codelist_id="CL_FREQ"),
+                    Dimension(concept_id="INDEX", codelist_id="CL_INDEX")],
+        id="SDLPG",
+        names={"en": "Supply and Demand of LPG"}
+    ),
     "07": DatasetStructure(
         attributes=[attributes['UNIT']],
         codelists=[codelists["CL_UNIT"],
@@ -436,6 +464,21 @@ def convert_dataset(input_dir: Path, structure: DatasetStructure, output_dir: Pa
                     series_dict[series_key].observations.append(obs)
             elif curr_year[0]:
                 break
+    elif structure.id == 'SDLPG':
+        source_sheet = dataset_source.sheet_by_index(0)
+        index_codes = structure.get_codelist('CL_INDEX').codes
+        series_dict = {'M.' + c.value: Series(key=[
+            Value(concept_id='FREQ', value='M'),
+            Value(concept_id='INDEX', value=c.value),
+        ], attributes=[Value(concept_id='UNIT', value='ton')], observations=[])
+            for c in index_codes}
+        for r_index, cell in enumerate(source_sheet.col(0)):
+            obs_time = match_date(cell, curr_year) if cell.value else None
+            if obs_time:
+                for c_index, index_code in enumerate(index_codes):
+                    obs = Obs(time=obs_time, attributes=[],
+                              value=parse_cell(source_sheet, r_index, c_index + 1))
+                    series_dict['M.' + index_code.value].observations.append(obs)
     elif structure.id == 'OIP':
         mapping = {'Y': {1: 'CO', 2: 'G', 3: 'N', 4: 'K', 5: 'GO', 6: 'FOA', 7: 'FOC',
                          8: 'LPG'},
